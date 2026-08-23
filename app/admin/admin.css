@@ -1,0 +1,263 @@
+/* Admin chrome: plainer than the public site on purpose — it's a tool, not a
+   portfolio page — but it borrows the same palette so it doesn't feel bolted on. */
+
+.admin {
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+}
+
+.admin--centered {
+  display: grid;
+  place-items: center;
+}
+
+.admin__login {
+  text-align: center;
+  padding: 2rem;
+  max-width: 26rem;
+}
+
+.admin__login h1 {
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 3rem;
+  margin: 0 0 0.5rem;
+  color: var(--oxblood);
+}
+
+.admin__hint {
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.admin__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem clamp(1rem, 4vw, 2.5rem);
+  border-bottom: 1px solid var(--ink);
+}
+
+.admin__brand {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.admin__brand a:hover {
+  color: var(--oxblood);
+}
+
+.admin__bar form {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin__who {
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.admin__signout {
+  background: none;
+  border: 1px solid var(--rule);
+  font-family: var(--serif);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.admin__signout:hover {
+  border-color: var(--oxblood);
+  color: var(--oxblood);
+}
+
+.admin__body {
+  padding: clamp(1.5rem, 4vw, 3rem);
+  max-width: 60rem;
+}
+
+.admin__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.admin__head h1 {
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: normal;
+  font-size: clamp(2rem, 5vw, 3rem);
+  margin: 0;
+}
+
+.admin__banner {
+  border: 1px solid var(--oxblood);
+  color: var(--oxblood);
+  padding: 0.75rem 1rem;
+  margin: 0 0 1.5rem;
+  font-size: 0.95rem;
+}
+
+.admin__banner a {
+  color: var(--oxblood);
+  border-bottom: 1px solid var(--oxblood);
+}
+
+.admin__empty {
+  color: var(--muted);
+}
+
+.admin__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.admin__table th {
+  text-align: left;
+  font-weight: normal;
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--ink);
+  padding: 0.5rem 0.75rem 0.5rem 0;
+}
+
+.admin__table td {
+  border-bottom: 1px solid var(--rule);
+  padding: 0.75rem 0.75rem 0.75rem 0;
+  vertical-align: top;
+}
+
+.admin__table a {
+  border-bottom: 1px solid var(--oxblood);
+  color: var(--oxblood);
+}
+
+.admin__row-actions {
+  text-align: right;
+}
+
+.admin__danger {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-family: var(--serif);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.admin__danger:hover {
+  color: var(--oxblood);
+}
+
+.admin__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  max-width: 40rem;
+}
+
+.admin__form-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.admin__form-actions .btn {
+  cursor: pointer;
+}
+
+.admin__form-actions .btn[disabled] {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* ---------- messages ---------- */
+
+.admin__messages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.msg {
+  border: 1px solid var(--ink);
+  padding: 1rem 1.25rem;
+}
+
+.msg--read {
+  border-color: var(--rule);
+  color: var(--muted);
+}
+
+.msg__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: baseline;
+  margin-bottom: 0.5rem;
+}
+
+.msg__head a {
+  color: var(--oxblood);
+}
+
+.msg__subject {
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 1.25rem;
+  margin: 0 0 0.4rem;
+}
+
+.msg__body {
+  margin: 0 0 0.9rem;
+  white-space: pre-wrap;
+  line-height: 1.7;
+}
+
+.msg__actions {
+  display: flex;
+  gap: 1.25rem;
+}
+
+.msg__actions button {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-family: var(--serif);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.msg__actions button:hover {
+  color: var(--oxblood);
+}
