@@ -1,26 +1,23 @@
 import Image from "next/image";
-import { Masthead } from "@/components/Masthead";
-import { SiteFooter } from "@/components/SiteFooter";
+import { BottomNav } from "@/components/BottomNav";
 
 export default function HomePage() {
   return (
-    <>
-      <Masthead current="/" />
+    <main className="cover">
+      <figure className="cover__photo">
+        <Image
+          src="/images/window-view.jpg"
+          alt="View through a window overlooking Prague's old town square"
+          fill
+          priority
+          sizes="100vw"
+        />
+      </figure>
 
-      <main className="cover-split">
-        <figure className="cover-split__image">
-          <Image
-            src="/images/window-view.jpg"
-            alt="View through a window overlooking a European city square"
-            fill
-            priority
-            sizes="50vw"
-          />
-        </figure>
-        <h1 className="cover-name-script rise">Amanda Juvera</h1>
-      </main>
+      {/* Sits above the photo/band seam so the descenders fall into the red. */}
+      <h1 className="cover__name">Amanda Juvera</h1>
 
-      <SiteFooter flush />
-    </>
+      <BottomNav current="/" tone="light" />
+    </main>
   );
 }

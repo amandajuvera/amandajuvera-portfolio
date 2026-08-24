@@ -40,7 +40,7 @@ export function ContactForm() {
       }
 
       setStatus("sent");
-      setMessage("Thank you — your message has been sent.");
+      setMessage("Sent — thank you.");
       form.reset();
     } catch {
       setStatus("error");
@@ -50,42 +50,42 @@ export function ContactForm() {
 
   if (status === "sent") {
     return (
-      <p className="form-note form-note--ok" role="status">
+      <p className="letter__sent" role="status">
         {message}
       </p>
     );
   }
 
   return (
-    <form className="contact-form" onSubmit={handleSubmit} noValidate>
-      <label className="field">
-        <span className="field__label utility">Name</span>
+    <form className="letter" onSubmit={handleSubmit} noValidate>
+      <label className="letter__line">
+        <span className="letter__label">name:</span>
         <input name="name" type="text" required maxLength={100} />
-        {fieldErrors.name ? (
-          <span className="field__error">{fieldErrors.name[0]}</span>
-        ) : null}
       </label>
+      {fieldErrors.name ? (
+        <span className="letter__error">{fieldErrors.name[0]}</span>
+      ) : null}
 
-      <label className="field">
-        <span className="field__label utility">Email</span>
+      <label className="letter__line">
+        <span className="letter__label">email:</span>
         <input name="email" type="email" required maxLength={200} />
-        {fieldErrors.email ? (
-          <span className="field__error">{fieldErrors.email[0]}</span>
-        ) : null}
       </label>
+      {fieldErrors.email ? (
+        <span className="letter__error">{fieldErrors.email[0]}</span>
+      ) : null}
 
-      <label className="field">
-        <span className="field__label utility">Subject</span>
+      <label className="letter__line letter__line--gap">
+        <span className="letter__label">subject:</span>
         <input name="subject" type="text" maxLength={150} />
       </label>
 
-      <label className="field">
-        <span className="field__label utility">Message</span>
-        <textarea name="body" rows={7} required minLength={10} maxLength={5000} />
-        {fieldErrors.body ? (
-          <span className="field__error">{fieldErrors.body[0]}</span>
-        ) : null}
+      <label className="letter__line letter__line--stacked">
+        <span className="letter__label">message:</span>
+        <textarea name="body" rows={8} required minLength={10} maxLength={5000} />
       </label>
+      {fieldErrors.body ? (
+        <span className="letter__error">{fieldErrors.body[0]}</span>
+      ) : null}
 
       {/* Honeypot: hidden from people, irresistible to naive bots. */}
       <div className="honeypot" aria-hidden="true">
@@ -95,12 +95,12 @@ export function ContactForm() {
         </label>
       </div>
 
-      <button className="btn" type="submit" disabled={status === "sending"}>
-        {status === "sending" ? "Sending…" : "Send message"}
+      <button className="letter__send" type="submit" disabled={status === "sending"}>
+        {status === "sending" ? "sending…" : "send"}
       </button>
 
       {status === "error" && message ? (
-        <p className="form-note form-note--error" role="alert">
+        <p className="letter__error" role="alert">
           {message}
         </p>
       ) : null}
