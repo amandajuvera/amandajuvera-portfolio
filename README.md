@@ -80,14 +80,13 @@ token:
 curl -X POST localhost:3000/api/sync/github -H "Authorization: Bearer $SYNC_SECRET"
 ```
 
-To run it nightly on Vercel, add `vercel.json`:
+`vercel.json` schedules it nightly at 06:00 UTC. Vercel Cron calls the endpoint
+with **GET** (which is why the route exports both verbs) and sends
+`Authorization: Bearer $CRON_SECRET`, so in Vercel set `CRON_SECRET` to the same
+value as `SYNC_SECRET` or the job will 401.
 
-```json
-{ "crons": [{ "path": "/api/sync/github", "schedule": "0 6 * * *" }] }
-```
-
-Vercel cron sends `Authorization: Bearer $CRON_SECRET`, so set `SYNC_SECRET` and
-`CRON_SECRET` to the same value.
+Note: Vercel's Hobby plan only permits once-a-day crons, which the 06:00
+schedule respects.
 
 Without `GITHUB_TOKEN` the sync is capped at 60 requests/hour (unauthenticated
 GitHub API limit). A token with no scopes raises it to 5000.

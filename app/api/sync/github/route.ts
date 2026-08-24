@@ -29,7 +29,7 @@ type RepoResponse = {
  * Public repo metadata needs no token, but an unauthenticated caller only gets
  * 60 requests/hour — set GITHUB_TOKEN to raise that to 5000.
  */
-export async function POST(request: Request) {
+async function runSync(request: Request) {
   if (!authorized(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -91,3 +91,8 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ synced, skipped, total: projects.length });
 }
+
+// Vercel Cron invokes scheduled endpoints with GET, so that's the path the
+// nightly job takes. POST is kept for triggering a sync by hand.
+export const GET = runSync;
+export const POST = runSync;
