@@ -36,10 +36,7 @@ export default function AboutPage() {
               <a href="mailto:ajuvera@umich.edu">ajuvera@umich.edu</a>.
             </p>
 
-            <figure
-              className="media-box media-box--wide"
-              style={{ maxWidth: "14rem", marginTop: "2.5rem" }}
-            >
+            <figure className="media-box media-box--wide swans">
               <Image
                 src="/images/swans.png"
                 alt="Line drawing of two swans forming a heart shape"
@@ -80,7 +77,7 @@ export default function AboutPage() {
         </div>
       </main>
 
-      <SiteFooter />
+      <SiteFooter flush />
     </>
   );
 }
