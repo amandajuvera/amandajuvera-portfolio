@@ -65,43 +65,24 @@
 /* ---------- shell ---------- */
 
 .term__main {
-  max-width: 74rem;
+  max-width: 82rem;
   margin: 0 auto;
-  padding: clamp(1.5rem, 5vw, 3rem) clamp(1rem, 4vw, 2.5rem) 3rem;
-}
-
-.term__head {
-  display: flex;
-  align-items: center;
-  gap: clamp(1rem, 3vw, 2.5rem);
-  margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
-}
-
-.term__name {
-  font-family: var(--script);
-  font-optical-sizing: none;
-  font-variation-settings: "opsz" 16;
-  font-size: clamp(2.75rem, 7vw, 5rem);
-  line-height: 1;
-}
-
-.fs__loading,
-.fs__error {
-  color: var(--dim);
+  padding: clamp(1.25rem, 3vw, 2rem) clamp(1rem, 4vw, 2.5rem) 3rem;
 }
 
 /* ---------- path bar ---------- */
 
-.fs__path {
+.ws__path {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 0 0.15rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
   font-size: 12px;
 }
 
-.fs__crumb {
+.ws__crumb,
+.ws__up {
   background: none;
   border: 0;
   padding: 0;
@@ -111,105 +92,115 @@
   cursor: pointer;
 }
 
-.fs__crumb:hover,
-.fs__path span:last-of-type .fs__crumb {
+.ws__crumb:hover,
+.ws__up:hover,
+.ws__path span:last-of-type .ws__crumb {
   color: var(--ink);
 }
 
-.fs__slash {
+.ws__slash {
   color: var(--hair);
   padding: 0 0.2rem;
 }
 
-.fs__up {
+.ws__up {
   margin-left: 1.25rem;
-  background: none;
-  border: 0;
-  padding: 0;
+}
+
+.ws__msg {
   color: var(--dim);
-  font-family: var(--mono);
-  font-size: 12px;
-  cursor: pointer;
 }
 
-.fs__up:hover {
-  color: var(--ink);
-}
+/* ---------- workspace ---------- */
 
-/* ---------- folders and files ---------- */
-
-.shelf {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(21rem, 1fr));
-  gap: 1.75rem;
-}
-
-.item {
+.ws {
   position: relative;
+  height: min(76vh, 46rem);
+  /* The cards are positioned against this box, so it must not scroll. */
+  overflow: hidden;
+  touch-action: none;
+}
+
+.ws__name {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  font-family: var(--script);
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 16;
+  font-size: clamp(2.75rem, 8vw, 6rem);
+  font-weight: 400;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--ink);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ---------- draggable cards ---------- */
+
+.card {
+  position: absolute;
+  width: 232px;
+  min-height: 150px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  min-height: 15rem;
-  padding: 2.5rem 1.75rem 1.5rem;
-  text-align: left;
-  border: 0;
-  cursor: pointer;
-  background: var(--glass-hi);
-  /* drop-shadow rather than box-shadow: box-shadow would trace the element's
-     rectangle, not the clipped folder silhouette. */
-  /* A shadow is invisible against near-black, so the silhouette is defined by
-     a drawn edge instead. */
-  filter: drop-shadow(0 0 0 transparent);
-  outline: none;
-  transition: background 0.18s ease, transform 0.18s ease;
+  gap: 0.25rem;
+  padding: 2.1rem 1.1rem 1rem;
+  background: var(--glass);
+  color: var(--ink);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  transition: background 0.16s ease, box-shadow 0.16s ease;
 }
 
-/* The tile *is* the folder: a rectangle with a raised tab on the left. */
-.item--dir {
+/* The card is the folder: a rectangle with a raised tab on the left. */
+.card--dir {
   clip-path: polygon(0 0, 33% 0, 37% 13%, 100% 13%, 100% 100%, 0 100%);
 }
 
-/* And a file is a page with its top corner turned. */
-.item--file {
+/* A file is a page with its top corner turned. */
+.card--file {
   clip-path: polygon(0 0, 76% 0, 100% 17%, 100% 100%, 0 100%);
-  min-height: 13rem;
-  background: rgba(255, 255, 255, 0.028);
+  background: rgba(255, 255, 255, 0.03);
 }
 
-.item:hover,
-.item.is-open {
-  background: rgba(255, 255, 255, 0.13);
-  transform: translateY(-3px);
+.card:hover,
+.card.is-open {
+  background: rgba(255, 255, 255, 0.12);
 }
 
-.item__label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
+.card.is-lifted {
+  cursor: grabbing;
+  z-index: 30;
+  background: rgba(255, 255, 255, 0.16);
 }
 
-.item__name {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: clamp(1.6rem, 3vw, 2.3rem);
-  line-height: 1.05;
-  letter-spacing: -0.015em;
-  word-break: break-word;
-}
-
-.item__meta {
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+.card__stamp {
+  position: absolute;
+  top: 0.85rem;
+  left: 1.1rem;
+  font-size: 9px;
+  letter-spacing: 0.14em;
   color: var(--dim);
 }
 
-.item__stamp {
-  position: absolute;
-  top: 1.15rem;
-  left: 1.75rem;
+.card__name {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.35rem;
+  line-height: 1.1;
+  word-break: break-word;
+}
+
+.card__meta {
   font-size: 9.5px;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
   color: var(--dim);
 }
 
@@ -290,57 +281,11 @@
   fill: currentColor;
 }
 
-@media (max-width: 40rem) {
-  .shelf {
-    grid-template-columns: 1fr;
-    gap: 1.25rem;
-  }
-
-  .item {
-    min-height: 12rem;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .term *,
   .intro * {
     animation: none !important;
     transition: none !important;
-  }
-}
-
-/* ---------- dotted filigree ---------- */
-
-.filigree {
-  height: auto;
-  color: var(--ink);
-  opacity: 0.3;
-  pointer-events: none;
-}
-
-/* Paired with the wordmark, sized off it so they scale together. */
-.filigree--beside {
-  width: clamp(7rem, 16vw, 13rem);
-  flex-shrink: 0;
-}
-
-.filigree--br {
-  position: absolute;
-  right: 0;
-  bottom: 4rem;
-  width: clamp(8rem, 18vw, 15rem);
-  opacity: 0.24;
-  transform: scale(-1, 1);
-}
-
-@media (max-width: 48rem) {
-  .filigree--beside {
-    display: none;
-  }
-
-  .filigree--br {
-    width: 7rem;
-    opacity: 0.18;
   }
 }
 
@@ -487,42 +432,30 @@
   font-size: 1.2rem;
 }
 
-/* ---------- ambient binary edges ---------- */
 
-.bin {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-evenly;
-  font-family: var(--mono);
-  font-size: 10px;
-  line-height: 1;
-  letter-spacing: 0.28em;
-  color: var(--ink);
-  pointer-events: none;
-  user-select: none;
-  z-index: 0;
-}
+@media (max-width: 44rem) {
+  /* Dragging a canvas on a phone fights the page scroll — lay the cards out
+     in flow instead and drop the centred wordmark into the header. */
+  .ws {
+    height: auto;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    padding-top: 1rem;
+  }
 
-.bin--left {
-  left: 0.5rem;
-}
+  .ws__name {
+    position: static;
+    transform: none;
+    margin-bottom: 1.25rem;
+    white-space: normal;
+  }
 
-.bin--right {
-  right: 0.5rem;
-  text-align: right;
-}
-
-/* The columns are texture, not content — they yield to the interface. */
-.term__main {
-  position: relative;
-  z-index: 1;
-}
-
-@media (max-width: 60rem) {
-  .bin {
-    display: none;
+  .card {
+    position: static !important;
+    visibility: visible !important;
+    width: 100%;
+    cursor: pointer;
   }
 }
