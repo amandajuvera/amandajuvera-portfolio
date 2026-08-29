@@ -2,11 +2,16 @@
 
 import { useEffect, useState } from "react";
 import type { Node } from "@/lib/tree";
+import { PacketCompose } from "./PacketCompose";
 
 type Payload = { root: string; generated: string; tree: Node[] };
 
 const humanSize = (n: Node) =>
-  n.kind === "dir" ? `${n.size} item${n.size === 1 ? "" : "s"}` : `${n.size} B`;
+  n.action === "compose"
+    ? "open"
+    : n.kind === "dir"
+      ? `${n.size} item${n.size === 1 ? "" : "s"}`
+      : `${n.size} B`;
 
 export function FileBrowser() {
   const [data, setData] = useState<Payload | null>(null);
@@ -80,8 +85,8 @@ export function FileBrowser() {
           <button
             key={node.name}
             className={`item item--${node.kind}${
-              open?.name === node.name ? " is-open" : ""
-            }`}
+              node.action === "compose" ? " item--compose" : ""
+            }${open?.name === node.name ? " is-open" : ""}`}
             onClick={() => {
               if (node.kind === "dir") {
                 setOpen(null);
@@ -112,7 +117,13 @@ export function FileBrowser() {
               ×
             </button>
           </div>
-          <pre className="reader__body">{open.body}</pre>
+          {open.action === "compose" ? (
+            <div className="reader__body">
+              <PacketCompose />
+            </div>
+          ) : (
+            <pre className="reader__body">{open.body}</pre>
+          )}
         </div>
       ) : null}
     </div>

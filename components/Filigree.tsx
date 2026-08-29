@@ -1,36 +1,39 @@
 /**
- * Dotted scrollwork, in the spirit of the ASCII-filigree reference.
- *
- * The curls are ordinary bezier paths; the dots come from a round-capped
- * zero-length dash pattern, so the ornament follows the curve at any scale
- * instead of being a fixed grid of plotted points.
+ * Dotted vine with little leaves, in the spirit of the ASCII-filigree
+ * reference. The stems are ordinary beziers; the dots come from a round-capped
+ * zero-length dash pattern, so the ornament follows each curve at any scale
+ * rather than being a fixed grid of plotted points.
  */
 export function Filigree({ className = "" }: { className?: string }) {
   return (
     <svg
       className={`filigree ${className}`}
-      viewBox="0 0 300 320"
+      viewBox="0 0 200 150"
       aria-hidden="true"
     >
       <g
         fill="none"
         stroke="currentColor"
-        strokeWidth="2.4"
+        strokeWidth="2.2"
         strokeLinecap="round"
-        strokeDasharray="0 7"
+        strokeDasharray="0 6"
       >
-        {/* main stem sweeping down the edge */}
-        <path d="M148 6 C150 60 132 96 108 128 C86 158 74 196 82 246 C88 284 72 302 44 312" />
-        {/* upper scroll */}
-        <path d="M148 10 C186 14 224 30 246 58 C264 82 258 112 232 118 C210 123 196 104 206 88 C214 75 234 76 240 90" />
-        {/* left curl off the stem */}
-        <path d="M120 112 C92 100 62 104 46 126 C32 145 42 168 64 166 C82 164 88 146 76 138" />
-        {/* small tendril */}
-        <path d="M96 178 C74 186 60 206 66 226 C71 242 90 246 98 234" />
-        {/* lower rosette */}
-        <path d="M78 262 C56 258 36 272 34 292 C32 308 48 318 60 310 C70 303 68 288 58 288" />
-        {/* opposing flick, keeps it from reading one-sided */}
-        <path d="M152 30 C176 44 190 68 186 92" />
+        {/* main stem, a long lazy S */}
+        <path d="M6 138 C34 128 52 106 60 78 C68 50 88 28 122 20 C150 13 176 20 192 38" />
+
+        {/* leaves alternating along the stem */}
+        <path d="M60 78 C48 66 46 50 58 42 C66 52 66 68 60 78 Z" />
+        <path d="M78 50 C82 34 96 26 106 32 C100 46 88 54 78 50 Z" />
+        <path d="M122 20 C120 6 132 -2 142 2 C140 14 130 22 122 20 Z" />
+        <path d="M38 108 C24 106 16 94 22 84 C34 88 42 98 38 108 Z" />
+
+        {/* curl finishing the tip */}
+        <path d="M192 38 C200 50 194 62 182 62 C173 62 168 52 176 46 C181 42 188 45 188 51" />
+
+        {/* small berry cluster */}
+        <circle cx="96" cy="66" r="1.6" strokeDasharray="0 0" />
+        <circle cx="104" cy="72" r="1.6" strokeDasharray="0 0" />
+        <circle cx="90" cy="76" r="1.6" strokeDasharray="0 0" />
       </g>
     </svg>
   );

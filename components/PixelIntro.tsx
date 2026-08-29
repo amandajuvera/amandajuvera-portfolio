@@ -17,6 +17,8 @@ type Particle = {
 const GLYPHS = "01";
 const NAME = "Amanda Juvera";
 const CELL = 5;
+/** Roughly the wordmark's size relative to the full-width intro. */
+const SHRINK_SCALE = 0.34;
 
 /**
  * Terminal glyphs rain down and settle into the name.
@@ -46,13 +48,17 @@ export function PixelIntro({ onDone }: { onDone: () => void }) {
 
     let width = 0;
     let height = 0;
+
+    // Where the header wordmark lands once the interface renders.
+    const headerX = () => Math.min(width * 0.5, width * 0.06 + width * 0.5 * SHRINK_SCALE + 40);
+    const headerY = () => 96;
     let particles: Particle[] = [];
     let raf = 0;
     let finished = false;
     let cancelled = false;
 
-    // "falling" -> "shimmer" -> "fade"
-    let phase: "falling" | "shimmer" | "fade" = "falling";
+    // "falling" -> "shimmer" -> "shrink"
+    let phase: "falling" | "shimmer" | "shrink" = "falling";
     let phaseStart = 0;
 
     /** next/font emits a hashed family name; read it back off the CSS variable. */
@@ -130,8 +136,29 @@ export function PixelIntro({ onDone }: { onDone: () => void }) {
       const t = now - phaseStart;
 
       // Translucent wash instead of a hard clear, so falling glyphs smear.
-      ctx!.fillStyle = "rgba(11,11,11,0.32)";
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx!.fillStyle = "rgba(11,11,12,0.32)";
       ctx!.fillRect(0, 0, width, height);
+
+      /*
+       * On the way out the whole field contracts toward where the wordmark
+       * will sit, so the binary name becomes the header rather than fading and
+       * being replaced. Scaling the canvas transform moves every particle at
+       * once and keeps the letterforms intact.
+       */
+      if (phase === "shrink") {
+        const k = Math.min(1, t / 760);
+        const ease = 1 - Math.pow(1 - k, 3);
+        const s = 1 + (SHRINK_SCALE - 1) * ease;
+        const cx = width / 2;
+        const cy = height / 2;
+        const tx = (headerX() - cx) * ease;
+        const ty = (headerY() - cy) * ease;
+        ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx!.translate(cx + tx, cy + ty);
+        ctx!.scale(s, s);
+        ctx!.translate(-cx, -cy);
+      }
 
       ctx!.font = `${CELL + 1}px "SF Mono", Menlo, Consolas, monospace`;
       ctx!.textBaseline = "top";
@@ -165,7 +192,8 @@ export function PixelIntro({ onDone }: { onDone: () => void }) {
             const d = Math.abs(p.x - sweep);
             if (d < 130) alpha = Math.min(1, alpha + (1 - d / 130) * 0.85);
           }
-          if (phase === "fade") alpha *= Math.max(0, 1 - t / 520);
+          // Hold full strength through the shrink; the handoff is the fade.
+          if (phase === "shrink") alpha *= Math.max(0, 1 - (t - 560) / 260);
         }
 
         ctx!.fillStyle = `rgba(245,245,245,${alpha})`;
@@ -175,10 +203,10 @@ export function PixelIntro({ onDone }: { onDone: () => void }) {
       if (phase === "falling" && particles.length > 0 && settled === particles.length) {
         phase = "shimmer";
         phaseStart = now;
-      } else if (phase === "shimmer" && t > 1150) {
-        phase = "fade";
+      } else if (phase === "shimmer" && t > 1000) {
+        phase = "shrink";
         phaseStart = now;
-      } else if (phase === "fade" && t > 560 && !finished) {
+      } else if (phase === "shrink" && t > 820 && !finished) {
         finished = true;
         doneRef.current();
         return;

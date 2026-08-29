@@ -1,16 +1,18 @@
-/* Monochrome HUD — pale ground, frosted panels cascading over one another.
-   Softness comes from Bodoni italic against mono metadata, not from colour. */
+/* Monochrome HUD, dark. The intro's binary field is the ground state, and the
+   interface stays in it — folders are faint glass cut out of the dark rather
+   than paper laid on top. Softness comes from the script and serif faces
+   against mono metadata, not from colour. */
 
 .term {
   position: relative;
   overflow-x: hidden;
-  --ground: #dcdbd9;
-  --ink: #16181a;
-  --dim: #6d7175;
-  --hair: rgba(22, 24, 26, 0.3);
-  --hair-soft: rgba(22, 24, 26, 0.12);
-  --glass: rgba(255, 255, 255, 0.42);
-  --glass-hi: rgba(255, 255, 255, 0.9);
+  --ground: #0b0b0c;
+  --ink: #ececec;
+  --dim: #6f7275;
+  --hair: rgba(236, 236, 236, 0.24);
+  --hair-soft: rgba(236, 236, 236, 0.1);
+  --glass: rgba(255, 255, 255, 0.045);
+  --glass-hi: rgba(255, 255, 255, 0.085);
   --mono: "SF Mono", "Menlo", "Consolas", "Courier New", monospace;
   --serif: var(--font-bodoni), Georgia, serif;
   --script: var(--font-ballet), "Ballet", cursive;
@@ -69,6 +71,9 @@
 }
 
 .term__head {
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 3vw, 2.5rem);
   margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
 }
 
@@ -152,7 +157,10 @@
   background: var(--glass-hi);
   /* drop-shadow rather than box-shadow: box-shadow would trace the element's
      rectangle, not the clipped folder silhouette. */
-  filter: drop-shadow(0 2px 0 var(--hair)) drop-shadow(0 10px 24px rgba(0, 0, 0, 0.12));
+  /* A shadow is invisible against near-black, so the silhouette is defined by
+     a drawn edge instead. */
+  filter: drop-shadow(0 0 0 transparent);
+  outline: none;
   transition: background 0.18s ease, transform 0.18s ease;
 }
 
@@ -165,12 +173,12 @@
 .item--file {
   clip-path: polygon(0 0, 76% 0, 100% 17%, 100% 100%, 0 100%);
   min-height: 13rem;
-  background: rgba(255, 255, 255, 0.62);
+  background: rgba(255, 255, 255, 0.028);
 }
 
 .item:hover,
 .item.is-open {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.13);
   transform: translateY(-3px);
 }
 
@@ -209,8 +217,8 @@
 
 .reader {
   margin-top: 2rem;
-  border: 1px solid var(--ink);
-  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--hair);
+  background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
@@ -304,30 +312,217 @@
 /* ---------- dotted filigree ---------- */
 
 .filigree {
-  position: absolute;
-  width: clamp(9rem, 20vw, 17rem);
   height: auto;
   color: var(--ink);
-  opacity: 0.34;
+  opacity: 0.3;
   pointer-events: none;
 }
 
-.filigree--tl {
-  top: 0;
-  left: 0;
+/* Paired with the wordmark, sized off it so they scale together. */
+.filigree--beside {
+  width: clamp(7rem, 16vw, 13rem);
+  flex-shrink: 0;
 }
 
-/* Mirrored twice so the pair frames the page rather than repeating. */
 .filigree--br {
+  position: absolute;
   right: 0;
-  /* Lifted so it doesn't tangle with the fixed social icons. */
-  bottom: 3.5rem;
-  transform: scale(-1, -1);
+  bottom: 4rem;
+  width: clamp(8rem, 18vw, 15rem);
+  opacity: 0.24;
+  transform: scale(-1, 1);
 }
 
 @media (max-width: 48rem) {
-  .filigree {
-    opacity: 0.22;
-    width: 8rem;
+  .filigree--beside {
+    display: none;
+  }
+
+  .filigree--br {
+    width: 7rem;
+    opacity: 0.18;
+  }
+}
+
+/* ---------- compose (contact) ---------- */
+
+.compose {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  max-width: 32rem;
+}
+
+.compose__lead {
+  margin: 0 0 0.35rem;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.15rem;
+}
+
+.compose__field {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.compose__field > span {
+  flex: 0 0 5rem;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.compose__field--stacked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+}
+
+.compose input,
+.compose textarea {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--hair);
+  border-radius: 0;
+  padding: 0.3rem 0;
+}
+
+.compose textarea {
+  border: 1px solid var(--hair);
+  padding: 0.6rem 0.75rem;
+  resize: vertical;
+  line-height: 1.7;
+}
+
+.compose input:focus,
+.compose textarea:focus {
+  outline: none;
+  border-color: var(--ink);
+}
+
+.compose__send {
+  align-self: flex-start;
+  margin-top: 0.4rem;
+  background: var(--ink);
+  color: var(--ground);
+  border: 0;
+  padding: 0.5rem 1.4rem;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.compose__send[disabled] {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.compose__err {
+  font-size: 11px;
+  color: #e0708a;
+}
+
+/* ---------- handshake ---------- */
+
+.wire__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.wire__step {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  opacity: 0.25;
+  transform: translateX(-4px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.wire__step.is-on {
+  opacity: 1;
+  transform: none;
+}
+
+.wire__dot {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.wire__plain {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.05rem;
+}
+
+/* The protocol name is the second reading, so it stays quiet. */
+.wire__code {
+  margin-left: auto;
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  color: var(--dim);
+}
+
+.wire__done {
+  margin: 1.25rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--hair);
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.2rem;
+}
+
+/* ---------- ambient binary edges ---------- */
+
+.bin {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  font-family: var(--mono);
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0.28em;
+  color: var(--ink);
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
+.bin--left {
+  left: 0.5rem;
+}
+
+.bin--right {
+  right: 0.5rem;
+  text-align: right;
+}
+
+/* The columns are texture, not content — they yield to the interface. */
+.term__main {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 60rem) {
+  .bin {
+    display: none;
   }
 }

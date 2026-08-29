@@ -4,6 +4,7 @@ import { useState } from "react";
 import { PixelIntro } from "@/components/PixelIntro";
 import { FileBrowser } from "@/components/FileBrowser";
 import { Filigree } from "@/components/Filigree";
+import { BinaryEdge } from "@/components/BinaryEdge";
 import "./terminal.css";
 
 export default function TerminalPage() {
@@ -19,16 +20,21 @@ export default function TerminalPage() {
 
   return (
     <div className="term">
-      <Filigree className="filigree--tl" />
-      <Filigree className="filigree--br" />
+      <BinaryEdge side="left" seed={3} />
+      <BinaryEdge side="right" seed={11} />
 
       <main className="term__main">
         <header className="term__head">
           <span className="term__name">Amanda Juvera</span>
+          {/* Sits on the baseline beside the wordmark rather than floating in
+              the corner, so the pair reads as one piece. */}
+          <Filigree className="filigree--beside" />
         </header>
 
         <FileBrowser />
       </main>
+
+      <Filigree className="filigree--br" />
 
       <footer className="term__foot">
         <a href="mailto:ajuvera@umich.edu" aria-label="Email">

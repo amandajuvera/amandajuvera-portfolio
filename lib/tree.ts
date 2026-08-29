@@ -3,6 +3,8 @@ import { db } from "./db";
 export type Node = {
   name: string;
   kind: "dir" | "file";
+  /** Marks a node that opens an interactive panel rather than showing text. */
+  action?: "compose";
   /** Bytes for files, child count for dirs — rendered in the size column. */
   size: number;
   modified: string;
@@ -47,10 +49,32 @@ export async function buildTree(): Promise<Node[]> {
 
   const projectNodes: Node[] = projects.map((p) => {
     const stamp = (p.ghPushedAt ?? p.updatedAt).toISOString().slice(0, 10);
-    const children: Node[] = [
-      file("README.txt", p.description, stamp),
-      file("stack.txt", p.techLine.split(", ").join("\n"), stamp),
-    ];
+    const paragraphs = p.description.split("\n\n").map((s) => s.trim()).filter(Boolean);
+
+    /*
+     * A project written as several "Component — description" paragraphs is
+     * really several projects sharing a home. Split those into their own
+     * directories so they can be browsed separately, and leave prose projects
+     * as a single README.
+     */
+    const components = paragraphs
+      .map((para) => para.match(/^(.{2,44}?)\s+—\s+([\s\S]+)$/))
+      .filter((m): m is RegExpMatchArray => Boolean(m));
+
+    const isComponentised = components.length === paragraphs.length && components.length > 1;
+
+    const children: Node[] = isComponentised
+      ? components.map(([, title, bodyText]) =>
+          dir(
+            title!.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+            `/projects/${p.slug}`,
+            [file("README.txt", `${title!.trim()}\n\n${bodyText!.trim()}`, stamp)],
+            stamp,
+          ),
+        )
+      : [file("README.txt", p.description, stamp)];
+
+    children.push(file("stack.txt", p.techLine.split(", ").join("\n"), stamp));
 
     if (p.ghSyncedAt) {
       children.push(
@@ -157,7 +181,16 @@ export async function buildTree(): Promise<Node[]> {
     dir(
       "contact",
       "/contact",
-      [file("email.txt", "ajuvera@umich.edu", BUILD_DATE)],
+      [
+        {
+          name: "send-message",
+          kind: "file",
+          action: "compose",
+          size: 0,
+          modified: BUILD_DATE,
+        },
+        file("email.txt", "ajuvera@umich.edu", BUILD_DATE),
+      ],
       BUILD_DATE,
     ),
   ];
