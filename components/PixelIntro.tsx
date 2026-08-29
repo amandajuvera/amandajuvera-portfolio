@@ -10,17 +10,21 @@ type Particle = {
   vy: number;
   ch: string;
   lit: number;
+  /** Frames since landing — drives the settle flash. */
+  age: number;
 };
 
 const GLYPHS = "01";
+const NAME = "Amanda Juvera";
+const CELL = 5;
 
 /**
- * Glyphs rain down and settle into "AMANDA JUVERA".
+ * Terminal glyphs rain down and settle into the name.
  *
- * The target positions are derived by rasterising the text to an offscreen
- * canvas and sampling its alpha channel on a grid — so the letterforms come
- * from the actual font rather than hand-plotted coordinates, and the effect
- * survives a font change.
+ * The letterforms are rasterised from Bodoni to an offscreen canvas and sampled
+ * on a grid, so the shape is an elegant serif while the pixels filling it stay
+ * binary — that tension is the whole point of the effect. Because the target
+ * comes from the real font, changing --font-bodoni changes the artwork.
  */
 export function PixelIntro({ onDone }: { onDone: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -45,8 +49,21 @@ export function PixelIntro({ onDone }: { onDone: () => void }) {
     let particles: Particle[] = [];
     let raf = 0;
     let finished = false;
+    let cancelled = false;
 
-    const CELL = 7;
+    // "falling" -> "shimmer" -> "fade"
+    let phase: "falling" | "shimmer" | "fade" = "falling";
+    let phaseStart = 0;
+
+    /** next/font emits a hashed family name; read it back off the CSS variable. */
+    function displayFont(): string {
+      const probe = document.createElement("span");
+      probe.style.fontFamily = "var(--font-bodoni)";
+      document.body.appendChild(probe);
+      const resolved = getComputedStyle(probe).fontFamily;
+      probe.remove();
+      return resolved && !resolved.includes("var(") ? resolved : "Georgia, serif";
+    }
 
     function buildTargets() {
       const off = document.createElement("canvas");
@@ -55,24 +72,28 @@ export function PixelIntro({ onDone }: { onDone: () => void }) {
       const octx = off.getContext("2d", { willReadFrequently: true });
       if (!octx) return [];
 
-      // Scale the type to the viewport, leaving a margin either side.
-      const target = width * 0.86;
-      let size = 10;
-      octx.font = `700 ${size}px "Courier New", monospace`;
-      const unit = octx.measureText("AMANDA JUVERA").width / size;
+      const family = displayFont();
+      const target = width * 0.82;
+
+      // Measure at a reference size, then scale to the target width.
+      let size = 100;
+      octx.font = `italic 500 ${size}px ${family}`;
+      const unit = octx.measureText(NAME).width / size;
       size = target / unit / CELL;
 
       octx.fillStyle = "#fff";
       octx.textAlign = "center";
       octx.textBaseline = "middle";
-      octx.font = `700 ${size}px "Courier New", monospace`;
-      octx.fillText("AMANDA JUVERA", off.width / 2, off.height / 2);
+      octx.font = `italic 500 ${size}px ${family}`;
+      octx.fillText(NAME, off.width / 2, off.height / 2);
 
       const { data } = octx.getImageData(0, 0, off.width, off.height);
       const out: { x: number; y: number }[] = [];
       for (let gy = 0; gy < off.height; gy++) {
         for (let gx = 0; gx < off.width; gx++) {
-          if (data[(gy * off.width + gx) * 4 + 3] > 128) {
+          // Lower threshold than a block font needs: serif hairlines and the
+          // thin ends of italic strokes are only partially opaque.
+          if (data[(gy * off.width + gx) * 4 + 3] > 60) {
             out.push({ x: gx * CELL, y: gy * CELL });
           }
         }
@@ -81,15 +102,15 @@ export function PixelIntro({ onDone }: { onDone: () => void }) {
     }
 
     function seed() {
-      const targets = buildTargets();
-      particles = targets.map((t) => ({
+      particles = buildTargets().map((t) => ({
         x: t.x,
-        y: reduced ? t.y : -Math.random() * height * 0.55,
+        y: reduced ? t.y : -Math.random() * height * 0.5,
         tx: t.x,
         ty: t.y,
-        vy: 7 + Math.random() * 11,
+        vy: 6 + Math.random() * 10,
         ch: GLYPHS[(Math.random() * GLYPHS.length) | 0]!,
         lit: Math.random(),
+        age: 0,
       }));
     }
 
@@ -102,35 +123,63 @@ export function PixelIntro({ onDone }: { onDone: () => void }) {
       seed();
     }
 
-    function frame() {
-      ctx!.clearRect(0, 0, width, height);
-      ctx!.font = `700 ${CELL}px "Courier New", monospace`;
+    function frame(now: number) {
+      if (cancelled) return;
+      if (!phaseStart) phaseStart = now;
+      const t = now - phaseStart;
+
+      // Translucent wash instead of a hard clear, so falling glyphs smear.
+      ctx!.fillStyle = "rgba(11,11,11,0.32)";
+      ctx!.fillRect(0, 0, width, height);
+
+      ctx!.font = `${CELL + 1}px "SF Mono", Menlo, Consolas, monospace`;
       ctx!.textBaseline = "top";
 
       let settled = 0;
+      const sweep =
+        phase === "shimmer" ? (t / 900) * (width * 1.3) - width * 0.15 : -1e9;
+
       for (const p of particles) {
         if (p.y < p.ty) {
           p.y = Math.min(p.ty, p.y + p.vy);
           p.vy *= 1.02;
-          if (Math.random() < 0.25) {
+          if (Math.random() < 0.2) {
             p.ch = GLYPHS[(Math.random() * GLYPHS.length) | 0]!;
           }
         } else {
           settled++;
+          p.age++;
         }
 
-        const done = p.y >= p.ty;
-        // Falling glyphs flicker; settled ones hold steady white.
-        ctx!.fillStyle = done
-          ? "#f2f2f2"
-          : `rgba(200,200,200,${0.25 + p.lit * 0.5})`;
+        const landed = p.y >= p.ty;
+        let alpha: number;
+
+        if (!landed) {
+          alpha = 0.18 + p.lit * 0.34;
+        } else {
+          // Brief flash on landing, easing down to a soft resting glow.
+          const flash = Math.max(0, 1 - p.age / 22);
+          alpha = 0.55 + flash * 0.45;
+          if (phase === "shimmer") {
+            const d = Math.abs(p.x - sweep);
+            if (d < 130) alpha = Math.min(1, alpha + (1 - d / 130) * 0.85);
+          }
+          if (phase === "fade") alpha *= Math.max(0, 1 - t / 520);
+        }
+
+        ctx!.fillStyle = `rgba(245,245,245,${alpha})`;
         ctx!.fillText(p.ch, p.x, p.y);
       }
 
-      if (settled === particles.length && !finished) {
+      if (phase === "falling" && particles.length > 0 && settled === particles.length) {
+        phase = "shimmer";
+        phaseStart = now;
+      } else if (phase === "shimmer" && t > 1150) {
+        phase = "fade";
+        phaseStart = now;
+      } else if (phase === "fade" && t > 560 && !finished) {
         finished = true;
-        // Let the assembled name hold for a beat before handing off.
-        window.setTimeout(() => doneRef.current(), 550);
+        doneRef.current();
         return;
       }
 
@@ -140,34 +189,47 @@ export function PixelIntro({ onDone }: { onDone: () => void }) {
     resize();
 
     if (reduced) {
-      // Draw the resolved name once and move on.
-      ctx.font = `700 ${CELL}px "Courier New", monospace`;
+      ctx.fillStyle = "#0b0b0b";
+      ctx.fillRect(0, 0, width, height);
+      ctx.font = `${CELL + 1}px "SF Mono", Menlo, Consolas, monospace`;
       ctx.textBaseline = "top";
-      ctx.fillStyle = "#f2f2f2";
+      ctx.fillStyle = "rgba(245,245,245,0.9)";
       for (const p of particles) ctx.fillText(p.ch, p.tx, p.ty);
-      const t = window.setTimeout(() => doneRef.current(), 900);
-      return () => window.clearTimeout(t);
+      const timer = window.setTimeout(() => doneRef.current(), 1100);
+      return () => window.clearTimeout(timer);
     }
 
-    raf = requestAnimationFrame(frame);
+    // Wait for Bodoni before rasterising, otherwise the target is measured
+    // against a fallback and the letterforms jump when the real face arrives.
+    let started = false;
+    const begin = () => {
+      if (started || cancelled) return;
+      started = true;
+      resize();
+      raf = requestAnimationFrame(frame);
+    };
+    document.fonts.ready.then(begin);
+    const fontBail = window.setTimeout(begin, 1200);
+
     window.addEventListener("resize", resize);
 
     /*
-     * Hard cap on a plain timer rather than inside the rAF loop. Browsers stop
-     * firing rAF entirely in a hidden or heavily throttled tab, so a valve that
-     * lives in the loop can never fire in exactly the case it exists for —
-     * the visitor would be left staring at an unfinished intro.
+     * Hard cap on a plain timer rather than inside the rAF loop: browsers stop
+     * firing rAF entirely in a hidden or throttled tab, so a valve living in
+     * the loop could never fire in the one case it exists for.
      */
     const bail = window.setTimeout(() => {
       if (!finished) {
         finished = true;
         doneRef.current();
       }
-    }, 9000);
+    }, 11000);
 
     return () => {
+      cancelled = true;
       cancelAnimationFrame(raf);
       window.clearTimeout(bail);
+      window.clearTimeout(fontBail);
       window.removeEventListener("resize", resize);
     };
   }, []);
