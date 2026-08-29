@@ -42,10 +42,20 @@ const BUILD_DATE = "2026-08-24";
  * listing ages on its own rather than showing invented dates.
  */
 export async function buildTree(): Promise<Node[]> {
-  const projects = await db.project.findMany({
-    where: { published: true },
-    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-  });
+  /*
+   * about, resume and contact are static, so a database that is down or
+   * unconfigured should cost the visitor the projects listing and nothing
+   * else. Letting this throw took the whole front page with it.
+   */
+  let projects: Awaited<ReturnType<typeof db.project.findMany>> = [];
+  try {
+    projects = await db.project.findMany({
+      where: { published: true },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    });
+  } catch (err) {
+    console.error("buildTree: project listing unavailable", err);
+  }
 
   const projectNodes: Node[] = projects.map((p) => {
     const stamp = (p.ghPushedAt ?? p.updatedAt).toISOString().slice(0, 10);
@@ -176,7 +186,14 @@ export async function buildTree(): Promise<Node[]> {
       BUILD_DATE,
     ),
 
-    dir("projects", "/projects", projectNodes, BUILD_DATE),
+    dir(
+      "projects",
+      "/projects",
+      projectNodes.length > 0
+        ? projectNodes
+        : [file("unavailable.txt", "The project listing could not be read.", BUILD_DATE)],
+      BUILD_DATE,
+    ),
 
     dir(
       "contact",
