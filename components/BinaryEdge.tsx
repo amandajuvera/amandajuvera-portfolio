@@ -20,15 +20,18 @@ export function BinaryEdge({
   seed?: number;
 }) {
   const lines = useMemo(() => {
-    // Deterministic so server and client markup agree — Math.random here
-    // would trip a hydration mismatch.
-    let s = seed * 9301 + 49297;
-    const next = () => {
-      s = (s * 9301 + 49297) % 233280;
-      return s / 233280;
+    /*
+     * A pure hash of the coordinates rather than a running generator: the bits
+     * must be identical on the server and the client or hydration mismatches,
+     * and a stateful sequence would also mean mutating a closure across
+     * renders.
+     */
+    const bit = (i: number, j: number) => {
+      const x = Math.sin((i + 1) * 127.1 + (j + 1) * 311.7 + seed * 74.7) * 43758.5453;
+      return x - Math.floor(x) > 0.5 ? "1" : "0";
     };
-    return Array.from({ length: rows }, () =>
-      Array.from({ length: cols }, () => (next() > 0.5 ? "1" : "0")).join(" "),
+    return Array.from({ length: rows }, (_, i) =>
+      Array.from({ length: cols }, (_, j) => bit(i, j)).join(" "),
     );
   }, [rows, cols, seed]);
 
