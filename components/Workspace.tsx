@@ -56,6 +56,8 @@ export function Workspace() {
   // Re-scatter whenever the level changes. Keyed on the contents so entering a
   // directory lays its children out fresh rather than reusing stale positions.
   const levelKey = `${trail.join("/")}|${level.map((n) => n.name).join(",")}`;
+  /** The name only holds the centre at the root; inside a directory it goes. */
+  const atRoot = trail.length === 0;
 
   useEffect(() => {
     const el = wrapRef.current;
@@ -67,14 +69,18 @@ export function Workspace() {
     const next: Record<string, Pos> = {};
 
     level.forEach((node, i) => {
-      // Ring around the name. A single item still gets pushed off-centre so it
-      // never lands on top of the wordmark.
       const angle = -Math.PI / 2 + (i / Math.max(n, 2)) * Math.PI * 2;
       const rx = Math.min(w * 0.32, w / 2 - CARD_W / 2 - 16);
       const ry = Math.min(h * 0.34, h / 2 - CARD_H / 2 - 16);
+      /*
+       * At the root the ring stays wide to clear the wordmark. Once the name
+       * is gone there's nothing to clear, so alternate the radius and let the
+       * cards fill the middle instead of orbiting a hole.
+       */
+      const k = trail.length === 0 ? 1 : i % 2 === 0 ? 0.95 : 0.48;
       next[node.name] = {
-        x: w / 2 + Math.cos(angle) * rx - CARD_W / 2,
-        y: h / 2 + Math.sin(angle) * ry - CARD_H / 2,
+        x: w / 2 + Math.cos(angle) * rx * k - CARD_W / 2,
+        y: h / 2 + Math.sin(angle) * ry * k - CARD_H / 2,
       };
     });
 
@@ -134,13 +140,13 @@ export function Workspace() {
       </div>
 
       <div className="ws" ref={wrapRef}>
-        <h1 className="ws__name">Amanda Juvera</h1>
+        {atRoot ? <h1 className="ws__name">Amanda Juvera</h1> : null}
 
-        {level.map((node) => {
+        {level.map((node, i) => {
           const p = pos[node.name];
           return (
             <div
-              key={node.name}
+              key={`${levelKey}:${node.name}`}
               role="button"
               tabIndex={0}
               className={`card card--${node.kind}${
@@ -151,6 +157,9 @@ export function Workspace() {
                 top: p?.y ?? 0,
                 // Hidden until laid out, so nothing flashes at 0,0 first paint.
                 visibility: p ? "visible" : "hidden",
+                // Staggered so they arrive one after another once the name has
+                // settled, rather than all appearing at once.
+                animationDelay: `${i * 90}ms`,
               }}
               onPointerDown={(e) => {
                 (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
