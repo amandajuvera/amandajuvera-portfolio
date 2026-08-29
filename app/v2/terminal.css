@@ -1,29 +1,40 @@
-/* Monochrome terminal shell — deliberately shares nothing with the editorial
-   palette, so the two directions can live side by side without bleeding. */
+/* Monochrome HUD — pale ground, frosted translucent panels, hairline rules.
+   Kept deliberately separate from the editorial palette so the two directions
+   can coexist. The softness comes from Bodoni italic against the mono
+   metadata, not from colour. */
 
 .term {
-  --bg: #0b0b0b;
-  --fg: #e8e8e8;
-  --dim: #7a7a7a;
-  --line: #2a2a2a;
+  --ground: #dcdbd9;
+  --ink: #16181a;
+  --dim: #6d7175;
+  --hair: rgba(22, 24, 26, 0.32);
+  --hair-soft: rgba(22, 24, 26, 0.14);
+  --glass: rgba(255, 255, 255, 0.44);
+  --glass-hi: rgba(255, 255, 255, 0.72);
   --mono: "SF Mono", "Menlo", "Consolas", "Courier New", monospace;
+  --serif: var(--font-bodoni), Georgia, serif;
 
   min-height: 100vh;
   min-height: 100svh;
-  background: var(--bg);
-  color: var(--fg);
+  color: var(--ink);
   font-family: var(--mono);
   font-size: 13px;
   line-height: 1.7;
+  background-color: var(--ground);
+  /* Faint drafting grid, as on the reference sheet. */
+  background-image:
+    linear-gradient(var(--hair-soft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--hair-soft) 1px, transparent 1px);
+  background-size: 46px 46px, 46px 46px;
 }
 
-/* ---------- intro ---------- */
+/* ---------- intro (stays dark, resolves into the light interface) ---------- */
 
 .intro {
   position: relative;
   min-height: 100vh;
   min-height: 100svh;
-  background: var(--bg);
+  background: #0b0b0b;
 }
 
 .intro__canvas {
@@ -38,8 +49,8 @@
   right: 1.5rem;
   bottom: 1.5rem;
   background: none;
-  border: 1px solid var(--line);
-  color: var(--dim);
+  border: 1px solid #2a2a2a;
+  color: #7a7a7a;
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.18em;
@@ -49,16 +60,16 @@
 }
 
 .intro__skip:hover {
-  color: var(--fg);
-  border-color: var(--dim);
+  color: #e8e8e8;
+  border-color: #7a7a7a;
 }
 
 /* ---------- shell ---------- */
 
 .term__main {
-  max-width: 70rem;
+  max-width: 78rem;
   margin: 0 auto;
-  padding: clamp(1.5rem, 5vw, 3rem) clamp(1rem, 4vw, 2.5rem) 4rem;
+  padding: clamp(1.5rem, 5vw, 3.25rem) clamp(1rem, 4vw, 2.5rem) 5rem;
 }
 
 .term__head {
@@ -66,9 +77,9 @@
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 0.5rem 2rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--line);
-  margin-bottom: 1.5rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--hair);
+  margin-bottom: 1.75rem;
   letter-spacing: 0.2em;
   font-size: 11px;
 }
@@ -99,16 +110,13 @@
   cursor: pointer;
 }
 
-.crumbs__link:hover {
-  color: var(--fg);
-}
-
+.crumbs__link:hover,
 .crumbs span:last-child .crumbs__link {
-  color: var(--fg);
+  color: var(--ink);
 }
 
 .crumbs__sep {
-  color: var(--line);
+  color: var(--hair);
   padding: 0 0.2rem;
 }
 
@@ -117,87 +125,145 @@
   color: var(--dim);
 }
 
-/* ---------- icon grid ---------- */
+/* ---------- panels ---------- */
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
-  gap: 0.5rem;
+  /* Deliberately large: these are the primary objects on the page, not list rows. */
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 1.25rem;
 }
 
-.tile {
+.panel {
+  position: relative;
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+  background: var(--glass);
+  border: 1px solid var(--hair);
+  backdrop-filter: blur(7px) saturate(0.9);
+  -webkit-backdrop-filter: blur(7px) saturate(0.9);
+  transition: background 0.18s ease, border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.panel:hover,
+.panel.is-open {
+  background: var(--glass-hi);
+  border-color: var(--ink);
+  transform: translateY(-2px);
+}
+
+/* Tab header, drawn as a notched strip like the reference's PANEL 021. */
+.panel__tab {
+  display: inline-block;
+  background: var(--ink);
+  color: var(--ground);
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  padding: 0.28rem 1.5rem 0.28rem 0.7rem;
+  clip-path: polygon(0 0, calc(100% - 0.7rem) 0, 100% 100%, 0 100%);
+}
+
+.panel__inner {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.55rem;
-  padding: 1.6rem 0.9rem 1.25rem;
-  background: none;
-  border: 1px solid transparent;
-  color: var(--fg);
-  font-family: var(--mono);
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  gap: 0.35rem;
+  padding: 1.5rem 1.25rem 1.75rem;
 }
 
-.tile:hover,
-.tile.is-open {
-  background: #141414;
-  border-color: var(--line);
-}
-
-/* Thin line art — the weight is what keeps this feeling light rather than
-   clip-arty at these sizes. */
-.tile__icon {
-  width: 46px;
+.panel__icon {
+  width: 52px;
   height: auto;
   fill: none;
-  stroke: var(--fg);
-  stroke-width: 1.6;
+  stroke: var(--ink);
+  stroke-width: 1.4;
   stroke-linejoin: round;
   stroke-linecap: round;
-  opacity: 0.9;
+  margin-bottom: 0.75rem;
+  opacity: 0.85;
 }
 
-.tile--file .tile__icon {
-  stroke: #b9b9b9;
-}
-
-.tile__icon-flap,
-.tile__icon-rule {
+.panel__icon-soft {
   stroke: var(--dim);
-  stroke-width: 1.2;
+  stroke-width: 1.1;
 }
 
-.tile:hover .tile__icon,
-.tile.is-open .tile__icon {
+.panel:hover .panel__icon,
+.panel.is-open .panel__icon {
   opacity: 1;
 }
 
-.tile__name {
-  font-size: 12px;
-  line-height: 1.35;
-  text-align: center;
+/* The serif is doing the softening here — mono everywhere reads as machinery. */
+.panel__name {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.45rem;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
   word-break: break-word;
 }
 
-.tile__meta {
+.panel__meta {
   font-size: 10px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   color: var(--dim);
-  text-align: center;
 }
 
-.tile--up .tile__name,
-.tile--up .tile__icon {
-  opacity: 0.55;
+.panel__stamp {
+  position: absolute;
+  right: 1.1rem;
+  bottom: 1rem;
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  color: var(--dim);
+}
+
+/* Registration marks in each corner. */
+.panel__marks i {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: var(--hair);
+}
+
+.panel__marks i:nth-child(1) { left: 7px; top: 34px; }
+.panel__marks i:nth-child(2) { right: 7px; top: 34px; }
+.panel__marks i:nth-child(3) { left: 7px; bottom: 7px; }
+.panel__marks i:nth-child(4) { right: 7px; bottom: 7px; }
+
+.panel--up {
+  background: transparent;
+  border-style: dashed;
+}
+
+.panel--up .panel__name {
+  color: var(--dim);
+  font-size: 1.15rem;
 }
 
 /* ---------- file viewer ---------- */
 
 .viewer {
-  margin-top: 2rem;
-  border: 1px solid var(--line);
-  background: #101010;
+  position: relative;
+  margin-top: 2.25rem;
+  background: var(--glass-hi);
+  border: 1px solid var(--ink);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+}
+
+.viewer__tab {
+  display: inline-block;
+  background: var(--ink);
+  color: var(--ground);
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  padding: 0.28rem 1.5rem 0.28rem 0.7rem;
+  clip-path: polygon(0 0, calc(100% - 0.7rem) 0, 100% 100%, 0 100%);
 }
 
 .viewer__bar {
@@ -205,48 +271,53 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.5rem 0.75rem 0.5rem 1rem;
-  border-bottom: 1px solid var(--line);
+  padding: 0.6rem 0.75rem 0.6rem 1.25rem;
+  border-bottom: 1px solid var(--hair);
 }
 
 .viewer__name {
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  color: var(--dim);
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.15rem;
 }
 
 .viewer__close {
   background: none;
   border: 0;
   color: var(--dim);
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1;
   cursor: pointer;
-  padding: 0 0.25rem;
+  padding: 0 0.35rem;
 }
 
 .viewer__close:hover {
-  color: var(--fg);
+  color: var(--ink);
 }
 
 .viewer__body {
   margin: 0;
-  padding: 1.1rem 1.25rem;
+  padding: 1.35rem 1.5rem;
   white-space: pre-wrap;
   word-break: break-word;
-  color: var(--fg);
+  color: var(--ink);
   font-family: var(--mono);
   font-size: 13px;
-  line-height: 1.8;
+  line-height: 1.85;
 }
 
-@media (max-width: 34rem) {
+@media (max-width: 40rem) {
   .grid {
-    grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+    gap: 0.85rem;
   }
 
-  .tile__icon {
-    width: 38px;
+  .panel__icon {
+    width: 42px;
+  }
+
+  .panel__name {
+    font-size: 1.2rem;
   }
 }
 
