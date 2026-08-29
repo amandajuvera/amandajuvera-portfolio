@@ -5,36 +5,13 @@ import type { Node } from "@/lib/tree";
 
 type Payload = { root: string; generated: string; tree: Node[] };
 
-const tag = (name: string) => {
-  let h = 0;
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
-  return String((Math.abs(h) % 900) + 100);
-};
-
 const humanSize = (n: Node) =>
   n.kind === "dir" ? `${n.size} item${n.size === 1 ? "" : "s"}` : `${n.size} B`;
-
-function FolderGlyph() {
-  return (
-    <svg className="glyph" viewBox="0 0 20 16" aria-hidden="true">
-      <path d="M1 3.2A1.6 1.6 0 0 1 2.6 1.6h5.1l1.9 2.2h8A1.6 1.6 0 0 1 19 5.4v7.6a1.6 1.6 0 0 1-1.6 1.6H2.6A1.6 1.6 0 0 1 1 13Z" />
-    </svg>
-  );
-}
-
-function FileGlyph() {
-  return (
-    <svg className="glyph" viewBox="0 0 14 17" aria-hidden="true">
-      <path d="M1 1.8A.8.8 0 0 1 1.8 1H8l5 5v9.2a.8.8 0 0 1-.8.8H1.8a.8.8 0 0 1-.8-.8Z" />
-      <path d="M8 1v5h5" />
-    </svg>
-  );
-}
 
 export function FileBrowser() {
   const [data, setData] = useState<Payload | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [active, setActive] = useState(0);
+  /** Directory names from the root down to the level being shown. */
   const [trail, setTrail] = useState<string[]>([]);
   const [open, setOpen] = useState<Node | null>(null);
 
@@ -51,10 +28,7 @@ export function FileBrowser() {
   if (error) return <p className="fs__error">cannot read directory: {error}</p>;
   if (!data) return <p className="fs__loading">reading directory…</p>;
 
-  const sections = data.tree;
-  const section = sections[active]!;
-
-  let level: Node[] = section.children ?? [];
+  let level: Node[] = data.tree;
   for (const name of trail) {
     const next = level.find((n) => n.name === name && n.kind === "dir");
     if (!next?.children) break;
@@ -62,99 +36,85 @@ export function FileBrowser() {
   }
 
   return (
-    <div className="stack">
-      {/* Frames only. The open one lifts to the front; the rest read as a pile. */}
-      {sections.map((s, i) => (
-        <div
-          key={s.name}
-          className={`panel${i === active ? " is-active" : ""}`}
-          style={{ ["--i" as string]: i }}
-          aria-hidden={i !== active}
+    <div className="fs">
+      <div className="fs__path">
+        <button
+          className="fs__crumb"
+          onClick={() => {
+            setTrail([]);
+            setOpen(null);
+          }}
         >
-          {i === active ? (
-            <div className="panel__body">
-              <h2 className="panel__title">
-                <FolderGlyph />
-                {section.name}
-              </h2>
-
-              {trail.length > 0 ? (
-                <button
-                  className="panel__back"
-                  onClick={() => {
-                    setOpen(null);
-                    setTrail((t) => t.slice(0, -1));
-                  }}
-                >
-                  ← {[section.name, ...trail.slice(0, -1)].join("/")}
-                </button>
-              ) : null}
-
-              <ul className="entries">
-                {level.map((node) => (
-                  <li key={node.name}>
-                    <button
-                      className={`entry entry--${node.kind}${
-                        open?.name === node.name ? " is-open" : ""
-                      }`}
-                      onClick={() => {
-                        if (node.kind === "dir") {
-                          setOpen(null);
-                          setTrail((t) => [...t, node.name]);
-                        } else {
-                          setOpen((o) => (o?.name === node.name ? null : node));
-                        }
-                      }}
-                    >
-                      <span className="entry__name">
-                        {node.kind === "dir" ? <FolderGlyph /> : <FileGlyph />}
-                        {node.name}
-                        {node.kind === "dir" ? "/" : ""}
-                      </span>
-                      <span className="entry__meta">
-                        {humanSize(node)} · {node.modified}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-
-              {open ? <pre className="reader">{open.body}</pre> : null}
-            </div>
-          ) : null}
-
-          <span className="panel__marks" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-            <i />
+          {data.root}
+        </button>
+        {trail.map((c, i) => (
+          <span key={`${c}-${i}`}>
+            <span className="fs__slash">/</span>
+            <button
+              className="fs__crumb"
+              onClick={() => {
+                setTrail((t) => t.slice(0, i + 1));
+                setOpen(null);
+              }}
+            >
+              {c}
+            </button>
           </span>
-        </div>
-      ))}
+        ))}
 
-      {/*
-       * Tabs live in their own layer above every panel. Nested inside the
-       * panels they inherited that panel's stacking context, so the open
-       * panel painted over the tabs behind it and they became unclickable —
-       * only the first directory could be reached.
-       */}
-      <div className="tabs">
-        {sections.map((s, i) => (
+        {trail.length > 0 ? (
           <button
-            key={s.name}
-            className={`tab${i === active ? " is-active" : ""}`}
-            style={{ ["--i" as string]: i }}
-            aria-expanded={i === active}
+            className="fs__up"
             onClick={() => {
-              setActive(i);
-              setTrail([]);
+              setTrail((t) => t.slice(0, -1));
               setOpen(null);
             }}
           >
-            {s.name.toUpperCase()} {tag(s.name)}
+            ← back
+          </button>
+        ) : null}
+      </div>
+
+      <div className="shelf">
+        {level.map((node) => (
+          <button
+            key={node.name}
+            className={`item item--${node.kind}${
+              open?.name === node.name ? " is-open" : ""
+            }`}
+            onClick={() => {
+              if (node.kind === "dir") {
+                setOpen(null);
+                setTrail((t) => [...t, node.name]);
+              } else {
+                setOpen((o) => (o?.name === node.name ? null : node));
+              }
+            }}
+          >
+            <span className="item__label">
+              <span className="item__name">{node.name}</span>
+              <span className="item__meta">{humanSize(node)}</span>
+            </span>
+            <span className="item__stamp">{node.modified}</span>
           </button>
         ))}
       </div>
+
+      {open ? (
+        <div className="reader">
+          <div className="reader__bar">
+            <span className="reader__name">{open.name}</span>
+            <button
+              className="reader__close"
+              onClick={() => setOpen(null)}
+              aria-label="Close file"
+            >
+              ×
+            </button>
+          </div>
+          <pre className="reader__body">{open.body}</pre>
+        </div>
+      ) : null}
     </div>
   );
 }
