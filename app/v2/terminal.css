@@ -2,6 +2,8 @@
    Softness comes from Bodoni italic against mono metadata, not from colour. */
 
 .term {
+  position: relative;
+  overflow-x: hidden;
   --ground: #dcdbd9;
   --ink: #16181a;
   --dim: #6d7175;
@@ -11,6 +13,7 @@
   --glass-hi: rgba(255, 255, 255, 0.9);
   --mono: "SF Mono", "Menlo", "Consolas", "Courier New", monospace;
   --serif: var(--font-bodoni), Georgia, serif;
+  --script: var(--font-ballet), "Ballet", cursive;
 
   min-height: 100vh;
   min-height: 100svh;
@@ -70,11 +73,11 @@
 }
 
 .term__name {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: clamp(1.9rem, 4.5vw, 3rem);
+  font-family: var(--script);
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 16;
+  font-size: clamp(2.75rem, 7vw, 5rem);
   line-height: 1;
-  letter-spacing: -0.015em;
 }
 
 .fs__loading,
@@ -111,10 +114,22 @@
   box-shadow: 0 18px 44px rgba(0, 0, 0, 0.16);
 }
 
-/* Notched tab, as on the reference's PANEL 021. */
-.panel__tab {
-  display: inline-block;
-  background: var(--ink);
+/* Tabs sit in their own layer above every panel so they stay clickable. */
+.tabs {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.tab {
+  position: absolute;
+  /* Stepped across more than down, so the whole run stays inside the open
+     panel's header band instead of landing on its contents. */
+  left: calc(var(--i) * 6.1rem);
+  top: calc(var(--i) * 1.5rem);
+  pointer-events: auto;
+  background: var(--dim);
   color: var(--ground);
   font-family: var(--mono);
   font-size: 9.5px;
@@ -123,26 +138,28 @@
   border: 0;
   cursor: pointer;
   clip-path: polygon(0 0, calc(100% - 0.75rem) 0, 100% 100%, 0 100%);
+  transition: background 0.16s ease;
 }
 
-.panel:not(.is-active) .panel__tab {
-  background: var(--dim);
-}
-
-.panel:not(.is-active):hover .panel__tab {
+.tab:hover,
+.tab.is-active {
   background: var(--ink);
 }
 
 .panel__body {
-  padding: 1.25rem 1.5rem 1.75rem;
+  /* Clears the stepped tab run above it. */
+  padding: 6.6rem 1.5rem 1.75rem;
 }
 
-/* Collapsed panels are short frames, not full cards. */
-.panel:not(.is-active) .panel__body {
-  padding: 0.9rem 1.5rem 2.75rem;
+/* Panels behind the open one are bare frames. */
+.panel:not(.is-active) {
+  min-height: 7.5rem;
 }
 
 .panel__title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
   margin: 0 0 0.75rem;
   font-family: var(--serif);
   font-style: italic;
@@ -221,6 +238,28 @@
   font-weight: 700;
 }
 
+.glyph {
+  width: 1em;
+  height: auto;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.panel__title .glyph {
+  width: 1.5rem;
+  stroke-width: 1.2;
+}
+
+.entry__name {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
 .entry__meta {
   flex-shrink: 0;
   font-size: 10px;
@@ -243,12 +282,13 @@
 /* ---------- footer ---------- */
 
 .term__foot {
+  position: fixed;
+  right: clamp(1rem, 3vw, 2rem);
+  bottom: clamp(1rem, 3vw, 1.75rem);
+  z-index: 200;
   display: flex;
-  gap: 1.25rem;
+  gap: 1.1rem;
   align-items: center;
-  margin-top: 2.5rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--hair);
 }
 
 .term__foot a {
@@ -291,5 +331,36 @@
   .intro * {
     animation: none !important;
     transition: none !important;
+  }
+}
+
+/* ---------- dotted filigree ---------- */
+
+.filigree {
+  position: absolute;
+  width: clamp(9rem, 20vw, 17rem);
+  height: auto;
+  color: var(--ink);
+  opacity: 0.34;
+  pointer-events: none;
+}
+
+.filigree--tl {
+  top: 0;
+  left: 0;
+}
+
+/* Mirrored twice so the pair frames the page rather than repeating. */
+.filigree--br {
+  right: 0;
+  /* Lifted so it doesn't tangle with the fixed social icons. */
+  bottom: 3.5rem;
+  transform: scale(-1, -1);
+}
+
+@media (max-width: 48rem) {
+  .filigree {
+    opacity: 0.22;
+    width: 8rem;
   }
 }

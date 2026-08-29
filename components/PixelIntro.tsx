@@ -21,10 +21,10 @@ const CELL = 5;
 /**
  * Terminal glyphs rain down and settle into the name.
  *
- * The letterforms are rasterised from Bodoni to an offscreen canvas and sampled
- * on a grid, so the shape is an elegant serif while the pixels filling it stay
+ * The letterforms are rasterised from Ballet to an offscreen canvas and sampled
+ * on a grid, so the shape is flowing script while the pixels filling it stay
  * binary — that tension is the whole point of the effect. Because the target
- * comes from the real font, changing --font-bodoni changes the artwork.
+ * comes from the real font, changing --font-ballet changes the artwork.
  */
 export function PixelIntro({ onDone }: { onDone: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -58,11 +58,11 @@ export function PixelIntro({ onDone }: { onDone: () => void }) {
     /** next/font emits a hashed family name; read it back off the CSS variable. */
     function displayFont(): string {
       const probe = document.createElement("span");
-      probe.style.fontFamily = "var(--font-bodoni)";
+      probe.style.fontFamily = "var(--font-ballet)";
       document.body.appendChild(probe);
       const resolved = getComputedStyle(probe).fontFamily;
       probe.remove();
-      return resolved && !resolved.includes("var(") ? resolved : "Georgia, serif";
+      return resolved && !resolved.includes("var(") ? resolved : "cursive";
     }
 
     function buildTargets() {
@@ -73,26 +73,27 @@ export function PixelIntro({ onDone }: { onDone: () => void }) {
       if (!octx) return [];
 
       const family = displayFont();
-      const target = width * 0.82;
+      const target = width * 0.92;
 
       // Measure at a reference size, then scale to the target width.
       let size = 100;
-      octx.font = `italic 500 ${size}px ${family}`;
+      octx.font = `${size}px ${family}`;
       const unit = octx.measureText(NAME).width / size;
       size = target / unit / CELL;
 
       octx.fillStyle = "#fff";
       octx.textAlign = "center";
       octx.textBaseline = "middle";
-      octx.font = `italic 500 ${size}px ${family}`;
+      octx.font = `${size}px ${family}`;
       octx.fillText(NAME, off.width / 2, off.height / 2);
 
       const { data } = octx.getImageData(0, 0, off.width, off.height);
       const out: { x: number; y: number }[] = [];
       for (let gy = 0; gy < off.height; gy++) {
         for (let gx = 0; gx < off.width; gx++) {
-          // Lower threshold than a block font needs: serif hairlines and the
-          // thin ends of italic strokes are only partially opaque.
+          // Low threshold: script hairlines and the tapered ends of Ballet's
+          // strokes are only partially opaque, and dropping them breaks the
+          // letterforms apart.
           if (data[(gy * off.width + gx) * 4 + 3] > 60) {
             out.push({ x: gx * CELL, y: gy * CELL });
           }
@@ -199,7 +200,7 @@ export function PixelIntro({ onDone }: { onDone: () => void }) {
       return () => window.clearTimeout(timer);
     }
 
-    // Wait for Bodoni before rasterising, otherwise the target is measured
+    // Wait for Ballet before rasterising, otherwise the target is measured
     // against a fallback and the letterforms jump when the real face arrives.
     let started = false;
     const begin = () => {
