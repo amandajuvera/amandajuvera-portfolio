@@ -3,6 +3,14 @@
    than paper laid on top. Softness comes from the script and serif faces
    against mono metadata, not from colour. */
 
+/* site.css paints the document white for the admin screens. The public site
+   is dark, so the page behind it has to be too — otherwise scroll-bounce and
+   the pre-hydration paint flash white around the interface. */
+html:has(.term),
+html:has(.term) body {
+  background: #0b0b0c;
+}
+
 .term {
   position: relative;
   overflow-x: hidden;

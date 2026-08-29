@@ -62,29 +62,54 @@ export function Workspace() {
   useEffect(() => {
     const el = wrapRef.current;
     if (!el || level.length === 0) return;
+    let cancelled = false;
 
-    const w = el.clientWidth;
-    const h = el.clientHeight;
-    const n = level.length;
-    const next: Record<string, Pos> = {};
+    function layout() {
+      if (cancelled || !el) return;
 
-    level.forEach((node, i) => {
-      const angle = -Math.PI / 2 + (i / Math.max(n, 2)) * Math.PI * 2;
-      const rx = Math.min(w * 0.32, w / 2 - CARD_W / 2 - 16);
+      const w = el.clientWidth;
+      const h = el.clientHeight;
+      const n = level.length;
+      const next: Record<string, Pos> = {};
+
+      // How far out the ring has to sit before it stops running into the
+      // wordmark. Measured rather than guessed: Ballet's swashes make the
+      // name far wider than its font-size suggests, and it rescales with the
+      // viewport. Capped so the cards stay inside the box on narrow screens.
+      const nameW =
+        el.querySelector(".ws__name")?.getBoundingClientRect().width ?? 0;
+      const rxMax = w / 2 - CARD_W / 2 - 16;
+      const clear = nameW / 2 + CARD_W / 2 + 28;
+      const rx = Math.min(rxMax, Math.max(w * 0.32, clear));
       const ry = Math.min(h * 0.34, h / 2 - CARD_H / 2 - 16);
-      /*
-       * At the root the ring stays wide to clear the wordmark. Once the name
-       * is gone there's nothing to clear, so alternate the radius and let the
-       * cards fill the middle instead of orbiting a hole.
-       */
-      const k = trail.length === 0 ? 1 : i % 2 === 0 ? 0.95 : 0.48;
-      next[node.name] = {
-        x: w / 2 + Math.cos(angle) * rx * k - CARD_W / 2,
-        y: h / 2 + Math.sin(angle) * ry * k - CARD_H / 2,
-      };
-    });
 
-    setPos(next);
+      level.forEach((node, i) => {
+        const angle = -Math.PI / 2 + (i / Math.max(n, 2)) * Math.PI * 2;
+        /*
+         * At the root the ring stays wide to clear the wordmark. Once the name
+         * is gone there's nothing to clear, so alternate the radius and let the
+         * cards fill the middle instead of orbiting a hole.
+         */
+        const k = trail.length === 0 ? 1 : i % 2 === 0 ? 0.95 : 0.48;
+        next[node.name] = {
+          x: w / 2 + Math.cos(angle) * rx * k - CARD_W / 2,
+          y: h / 2 + Math.sin(angle) * ry * k - CARD_H / 2,
+        };
+      });
+
+      setPos(next);
+    }
+
+    // Measuring before Ballet arrives reads the fallback face and lays the
+    // ring out against the wrong width, so wait for the real font.
+    layout();
+    document.fonts?.ready.then(layout);
+
+    window.addEventListener("resize", layout);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("resize", layout);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [levelKey]);
 
