@@ -1,34 +1,27 @@
-/* Monochrome HUD — pale ground, frosted translucent panels, hairline rules.
-   Kept deliberately separate from the editorial palette so the two directions
-   can coexist. The softness comes from Bodoni italic against the mono
-   metadata, not from colour. */
+/* Monochrome HUD — pale ground, frosted panels cascading over one another.
+   Softness comes from Bodoni italic against mono metadata, not from colour. */
 
 .term {
   --ground: #dcdbd9;
   --ink: #16181a;
   --dim: #6d7175;
-  --hair: rgba(22, 24, 26, 0.32);
-  --hair-soft: rgba(22, 24, 26, 0.14);
-  --glass: rgba(255, 255, 255, 0.44);
-  --glass-hi: rgba(255, 255, 255, 0.72);
+  --hair: rgba(22, 24, 26, 0.3);
+  --hair-soft: rgba(22, 24, 26, 0.12);
+  --glass: rgba(255, 255, 255, 0.42);
+  --glass-hi: rgba(255, 255, 255, 0.9);
   --mono: "SF Mono", "Menlo", "Consolas", "Courier New", monospace;
   --serif: var(--font-bodoni), Georgia, serif;
 
   min-height: 100vh;
   min-height: 100svh;
+  background: var(--ground);
   color: var(--ink);
   font-family: var(--mono);
   font-size: 13px;
   line-height: 1.7;
-  background-color: var(--ground);
-  /* Faint drafting grid, as on the reference sheet. */
-  background-image:
-    linear-gradient(var(--hair-soft) 1px, transparent 1px),
-    linear-gradient(90deg, var(--hair-soft) 1px, transparent 1px);
-  background-size: 46px 46px, 46px 46px;
 }
 
-/* ---------- intro (stays dark, resolves into the light interface) ---------- */
+/* ---------- intro (dark, resolves into the light interface) ---------- */
 
 .intro {
   position: relative;
@@ -67,57 +60,21 @@
 /* ---------- shell ---------- */
 
 .term__main {
-  max-width: 78rem;
+  max-width: 74rem;
   margin: 0 auto;
-  padding: clamp(1.5rem, 5vw, 3.25rem) clamp(1rem, 4vw, 2.5rem) 5rem;
+  padding: clamp(1.5rem, 5vw, 3rem) clamp(1rem, 4vw, 2.5rem) 3rem;
 }
 
 .term__head {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0.5rem 2rem;
-  padding-bottom: 0.85rem;
-  border-bottom: 1px solid var(--hair);
-  margin-bottom: 1.75rem;
-  letter-spacing: 0.2em;
-  font-size: 11px;
+  margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
 }
 
-.term__meta {
-  color: var(--dim);
-}
-
-/* ---------- breadcrumbs ---------- */
-
-.crumbs {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0 0.15rem;
-  margin-bottom: 1.75rem;
-  font-size: 12px;
-  letter-spacing: 0.06em;
-}
-
-.crumbs__link {
-  background: none;
-  border: 0;
-  padding: 0;
-  color: var(--dim);
-  font-family: var(--mono);
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.crumbs__link:hover,
-.crumbs span:last-child .crumbs__link {
-  color: var(--ink);
-}
-
-.crumbs__sep {
-  color: var(--hair);
-  padding: 0 0.2rem;
+.term__name {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(1.9rem, 4.5vw, 3rem);
+  line-height: 1;
+  letter-spacing: -0.015em;
 }
 
 .fs__loading,
@@ -125,104 +82,98 @@
   color: var(--dim);
 }
 
-/* ---------- panels ---------- */
+/* ---------- cascading panels ---------- */
 
-.grid {
-  display: grid;
-  /* Deliberately large: these are the primary objects on the page, not list rows. */
-  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
-  gap: 1.25rem;
+.stack {
+  position: relative;
+  /* Room for the tallest panel plus the cascade offset of the ones behind. */
+  min-height: 40rem;
 }
 
 .panel {
-  position: relative;
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 0;
-  cursor: pointer;
+  position: absolute;
+  left: calc(var(--i) * 2.6rem);
+  top: calc(var(--i) * 2.2rem);
+  width: min(100% - var(--i) * 2.6rem, 46rem);
+  z-index: var(--i);
   background: var(--glass);
   border: 1px solid var(--hair);
-  backdrop-filter: blur(7px) saturate(0.9);
-  -webkit-backdrop-filter: blur(7px) saturate(0.9);
-  transition: background 0.18s ease, border-color 0.18s ease,
-    transform 0.18s ease;
+  backdrop-filter: blur(8px) saturate(0.9);
+  -webkit-backdrop-filter: blur(8px) saturate(0.9);
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.panel:hover,
-.panel.is-open {
+/* The open panel lifts clear of the pile. */
+.panel.is-active {
+  z-index: 50;
   background: var(--glass-hi);
   border-color: var(--ink);
-  transform: translateY(-2px);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.16);
 }
 
-/* Tab header, drawn as a notched strip like the reference's PANEL 021. */
+/* Notched tab, as on the reference's PANEL 021. */
 .panel__tab {
   display: inline-block;
   background: var(--ink);
   color: var(--ground);
+  font-family: var(--mono);
   font-size: 9.5px;
   letter-spacing: 0.2em;
-  padding: 0.28rem 1.5rem 0.28rem 0.7rem;
-  clip-path: polygon(0 0, calc(100% - 0.7rem) 0, 100% 100%, 0 100%);
+  padding: 0.3rem 1.6rem 0.3rem 0.75rem;
+  border: 0;
+  cursor: pointer;
+  clip-path: polygon(0 0, calc(100% - 0.75rem) 0, 100% 100%, 0 100%);
 }
 
-.panel__inner {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  padding: 1.5rem 1.25rem 1.75rem;
+.panel:not(.is-active) .panel__tab {
+  background: var(--dim);
 }
 
-.panel__icon {
-  width: 52px;
-  height: auto;
-  fill: none;
-  stroke: var(--ink);
-  stroke-width: 1.4;
-  stroke-linejoin: round;
-  stroke-linecap: round;
-  margin-bottom: 0.75rem;
-  opacity: 0.85;
+.panel:not(.is-active):hover .panel__tab {
+  background: var(--ink);
 }
 
-.panel__icon-soft {
-  stroke: var(--dim);
-  stroke-width: 1.1;
+.panel__body {
+  padding: 1.25rem 1.5rem 1.75rem;
 }
 
-.panel:hover .panel__icon,
-.panel.is-open .panel__icon {
-  opacity: 1;
+/* Collapsed panels are short frames, not full cards. */
+.panel:not(.is-active) .panel__body {
+  padding: 0.9rem 1.5rem 2.75rem;
 }
 
-/* The serif is doing the softening here — mono everywhere reads as machinery. */
-.panel__name {
+.panel__title {
+  margin: 0 0 0.75rem;
   font-family: var(--serif);
   font-style: italic;
-  font-size: 1.45rem;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
-  word-break: break-word;
+  font-weight: 400;
+  font-size: 1.75rem;
+  line-height: 1.1;
 }
 
-.panel__meta {
+.panel__hint {
+  margin: 0;
   font-size: 10px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--dim);
 }
 
-.panel__stamp {
-  position: absolute;
-  right: 1.1rem;
-  bottom: 1rem;
-  font-size: 9.5px;
-  letter-spacing: 0.12em;
+.panel__back {
+  background: none;
+  border: 0;
+  padding: 0 0 0.75rem;
   color: var(--dim);
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
 }
 
-/* Registration marks in each corner. */
+.panel__back:hover {
+  color: var(--ink);
+}
+
+/* Registration marks. */
 .panel__marks i {
   position: absolute;
   width: 3px;
@@ -230,94 +181,108 @@
   background: var(--hair);
 }
 
-.panel__marks i:nth-child(1) { left: 7px; top: 34px; }
-.panel__marks i:nth-child(2) { right: 7px; top: 34px; }
+.panel__marks i:nth-child(1) { left: 7px; top: 36px; }
+.panel__marks i:nth-child(2) { right: 7px; top: 36px; }
 .panel__marks i:nth-child(3) { left: 7px; bottom: 7px; }
 .panel__marks i:nth-child(4) { right: 7px; bottom: 7px; }
 
-.panel--up {
-  background: transparent;
-  border-style: dashed;
+/* ---------- entries inside a panel ---------- */
+
+.entries {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--hair-soft);
 }
 
-.panel--up .panel__name {
-  color: var(--dim);
-  font-size: 1.15rem;
-}
-
-/* ---------- file viewer ---------- */
-
-.viewer {
-  position: relative;
-  margin-top: 2.25rem;
-  background: var(--glass-hi);
-  border: 1px solid var(--ink);
-  backdrop-filter: blur(7px);
-  -webkit-backdrop-filter: blur(7px);
-}
-
-.viewer__tab {
-  display: inline-block;
-  background: var(--ink);
-  color: var(--ground);
-  font-size: 9.5px;
-  letter-spacing: 0.2em;
-  padding: 0.28rem 1.5rem 0.28rem 0.7rem;
-  clip-path: polygon(0 0, calc(100% - 0.7rem) 0, 100% 100%, 0 100%);
-}
-
-.viewer__bar {
+.entry {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 0.6rem 0.75rem 0.6rem 1.25rem;
-  border-bottom: 1px solid var(--hair);
-}
-
-.viewer__name {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 1.15rem;
-}
-
-.viewer__close {
+  gap: 1.5rem;
+  width: 100%;
+  text-align: left;
   background: none;
   border: 0;
-  color: var(--dim);
-  font-size: 20px;
-  line-height: 1;
-  cursor: pointer;
-  padding: 0 0.35rem;
-}
-
-.viewer__close:hover {
-  color: var(--ink);
-}
-
-.viewer__body {
-  margin: 0;
-  padding: 1.35rem 1.5rem;
-  white-space: pre-wrap;
-  word-break: break-word;
+  border-bottom: 1px solid var(--hair-soft);
+  padding: 0.55rem 0.25rem;
   color: var(--ink);
   font-family: var(--mono);
-  font-size: 13px;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.entry:hover,
+.entry.is-open {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.entry--dir .entry__name {
+  font-weight: 700;
+}
+
+.entry__meta {
+  flex-shrink: 0;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--dim);
+}
+
+.reader {
+  margin: 1.25rem 0 0;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--hair);
+  background: rgba(255, 255, 255, 0.55);
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--mono);
+  font-size: 12.5px;
   line-height: 1.85;
 }
 
-@media (max-width: 40rem) {
-  .grid {
-    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
-    gap: 0.85rem;
+/* ---------- footer ---------- */
+
+.term__foot {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--hair);
+}
+
+.term__foot a {
+  display: inline-flex;
+  color: var(--ink);
+  opacity: 0.75;
+}
+
+.term__foot a:hover {
+  opacity: 1;
+}
+
+.term__foot svg {
+  width: 17px;
+  height: 17px;
+  fill: currentColor;
+}
+
+@media (max-width: 48rem) {
+  /* Cascading offsets eat the whole width on a phone — stack them flat. */
+  .stack {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
   }
 
-  .panel__icon {
-    width: 42px;
+  .panel {
+    position: static;
+    width: 100%;
   }
 
-  .panel__name {
-    font-size: 1.2rem;
+  .panel.is-active {
+    box-shadow: none;
   }
 }
 
