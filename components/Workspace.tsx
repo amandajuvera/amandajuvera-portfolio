@@ -246,6 +246,18 @@ export function Workspace() {
             <div className="reader__body">
               <PacketCompose />
             </div>
+          ) : open.href ? (
+            // .url and .pdf entries are destinations, not text to read.
+            <p className="reader__body">
+              <a
+                className="reader__link"
+                href={open.href}
+                target={open.href.startsWith("mailto:") ? undefined : "_blank"}
+                rel="noopener noreferrer"
+              >
+                {open.body}
+              </a>
+            </p>
           ) : (
             <pre className="reader__body">{open.body}</pre>
           )}

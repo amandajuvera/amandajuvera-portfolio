@@ -215,12 +215,28 @@ html:has(.term) body {
 
 /* ---------- file reader ---------- */
 
+/* The workspace is a fixed-height canvas, so a reader in normal flow opens
+   below the fold — you'd click a file and see nothing move. It's a window
+   over the workspace instead, floated in the middle and scrolled internally. */
 .reader {
-  margin-top: 2rem;
+  position: fixed;
+  z-index: 300;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(46rem, calc(100vw - 2rem));
+  max-height: min(70vh, 36rem);
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--hair);
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(18, 18, 20, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
+.reader__bar {
+  flex: 0 0 auto;
 }
 
 .reader__bar {
@@ -254,6 +270,9 @@ html:has(.term) body {
 
 .reader__body {
   margin: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 1.35rem 1.5rem;
   white-space: pre-wrap;
   word-break: break-word;
@@ -482,4 +501,15 @@ html:has(.term) body {
     width: 100%;
     cursor: pointer;
   }
+}
+
+.reader__link {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--hair);
+}
+
+.reader__link:hover {
+  text-decoration-color: var(--ink);
 }
