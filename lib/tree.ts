@@ -190,15 +190,7 @@ export async function buildTree(): Promise<Node[]> {
           "bio.txt",
           wrap(
             [
-              "Hey, I'm Amanda. I'm studying Computer Science at the University of",
-              "Michigan, graduating May 2027.",
-              "",
-              "I like the parts of software where the machine stops being an",
-              "abstraction — schedulers, page faults, sockets, and the places",
-              "where a system has to stay correct through a crash. Lately that has",
-              "meant supply-chain security at Oracle, computer vision for",
-              "autonomous vehicle review at Retrospect, and a road trip planner",
-              "that reasons about detour cost instead of distance.",
+              "Hey, I'm Amanda. I'm studying Computer Science at the University of Michigan, graduating 2027.",
               "",
               "I have lived in California, New Jersey, Texas, Georgia, and Arizona.",
             ].join("\n"),
