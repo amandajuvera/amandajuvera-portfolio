@@ -191,8 +191,6 @@ export async function buildTree(): Promise<Node[]> {
           wrap(
             [
               "Hey, I'm Amanda. I'm studying Computer Science at the University of Michigan, graduating 2027.",
-              "",
-              "I have lived in California, New Jersey, Texas, Georgia, and Arizona.",
             ].join("\n"),
           ),
           BUILD_DATE,

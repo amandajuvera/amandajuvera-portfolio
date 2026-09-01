@@ -129,24 +129,6 @@ html:has(.term) body {
   touch-action: none;
 }
 
-.ws__name {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  margin: 0;
-  font-family: var(--script);
-  font-optical-sizing: none;
-  font-variation-settings: "opsz" 16;
-  font-size: clamp(2.75rem, 8vw, 6rem);
-  font-weight: 400;
-  line-height: 1;
-  white-space: nowrap;
-  color: var(--ink);
-  pointer-events: none;
-  user-select: none;
-}
-
 /* ---------- draggable cards ---------- */
 
 .card {
@@ -486,13 +468,6 @@ html:has(.term) body {
     flex-direction: column;
     gap: 0.9rem;
     padding-top: 1rem;
-  }
-
-  .ws__name {
-    position: static;
-    transform: none;
-    margin-bottom: 1.25rem;
-    white-space: normal;
   }
 
   .card {
